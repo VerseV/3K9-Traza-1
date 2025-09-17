@@ -1,167 +1,188 @@
 package Main;
 
-
 import Main.Java.Entidades.*;
 import Main.Java.Repositorio.InMemoryRepository;
-
 import java.time.LocalTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 public class Main {
     public static void main(String[] args) {
 
-        // === REPOSITORIOS ===
+        // ===============================================================
+        //   INICIALIZACIÓN DE LOS REPOSITORIOS
+        // ===============================================================
+        // Cada repositorio guarda en memoria las entidades creadas.
+        // Nos permite simular una "base de datos en memoria".
+        InMemoryRepository<Pais> paisRepo = new InMemoryRepository<>();
+        InMemoryRepository<Provincia> provinciaRepo = new InMemoryRepository<>();
+        InMemoryRepository<Localidad> localidadRepo = new InMemoryRepository<>();
+        InMemoryRepository<Domicilio> domicilioRepo = new InMemoryRepository<>();
         InMemoryRepository<Sucursal> sucursalRepo = new InMemoryRepository<>();
         InMemoryRepository<Empresa> empresaRepo = new InMemoryRepository<>();
 
-        // === 1) PAÍS ===
+        // ===============================================================
+        //   CREACIÓN DE PAÍS
+        // ===============================================================
         Pais argentina = Pais.builder()
                 .nombre("Argentina")
                 .build();
+        paisRepo.save(argentina);  // se guarda y se asigna un ID automático
 
-        // === 2) PROVINCIAS ===
+        // ===============================================================
+        //   PROVINCIA: Buenos Aires
+        // ===============================================================
         Provincia buenosAires = Provincia.builder()
                 .nombre("Buenos Aires")
                 .pais(argentina)
                 .build();
+        provinciaRepo.save(buenosAires);
+        argentina.getProvincias().add(buenosAires); // relación bidireccional
 
-        Provincia cordoba = Provincia.builder()
-                .nombre("Córdoba")
-                .pais(argentina)
-                .build();
-
-        argentina.getProvincias().add(buenosAires);
-        argentina.getProvincias().add(cordoba);
-
-        // === 3) LOCALIDADES + DOMICILIOS ===
+        // ===============================================================
+        //   LOCALIDAD: CABA + DOMICILIO
+        // ===============================================================
         Localidad caba = Localidad.builder()
                 .nombre("CABA")
                 .provincia(buenosAires)
                 .build();
-        buenosAires.getLocalidades().add(caba);
+        localidadRepo.save(caba);
+        buenosAires.getLocalidades().add(caba); // relación bidireccional
 
         Domicilio domCaba = Domicilio.builder()
                 .calle("Av. Corrientes")
                 .numero(1000)
                 .cp(1000)
-                .piso(1)
-                .nroDpto(1)
                 .localidad(caba)
                 .build();
+        domicilioRepo.save(domCaba);
 
+        // ===============================================================
+        //   LOCALIDAD: La Plata + DOMICILIO
+        // ===============================================================
         Localidad laPlata = Localidad.builder()
                 .nombre("La Plata")
                 .provincia(buenosAires)
                 .build();
+        localidadRepo.save(laPlata);
         buenosAires.getLocalidades().add(laPlata);
 
         Domicilio domLaPlata = Domicilio.builder()
                 .calle("Calle 50")
                 .numero(200)
                 .cp(1900)
-                .piso(2)
-                .nroDpto(2)
                 .localidad(laPlata)
                 .build();
+        domicilioRepo.save(domLaPlata);
+
+        // ===============================================================
+        //   PROVINCIA: Córdoba + LOCALIDADES Y DOMICILIOS
+        // ===============================================================
+        Provincia cordoba = Provincia.builder()
+                .nombre("Córdoba")
+                .pais(argentina)
+                .build();
+        provinciaRepo.save(cordoba);
+        argentina.getProvincias().add(cordoba);
 
         Localidad cordobaCapital = Localidad.builder()
                 .nombre("Córdoba Capital")
                 .provincia(cordoba)
                 .build();
+        localidadRepo.save(cordobaCapital);
         cordoba.getLocalidades().add(cordobaCapital);
 
         Domicilio domCordobaCap = Domicilio.builder()
                 .calle("Bv. San Juan")
                 .numero(500)
                 .cp(5000)
-                .piso(3)
-                .nroDpto(3)
                 .localidad(cordobaCapital)
                 .build();
+        domicilioRepo.save(domCordobaCap);
 
         Localidad villaCarlosPaz = Localidad.builder()
                 .nombre("Villa Carlos Paz")
                 .provincia(cordoba)
                 .build();
+        localidadRepo.save(villaCarlosPaz);
         cordoba.getLocalidades().add(villaCarlosPaz);
 
         Domicilio domVCP = Domicilio.builder()
                 .calle("Av. San Martín")
                 .numero(300)
                 .cp(5152)
-                .piso(4)
-                .nroDpto(4)
                 .localidad(villaCarlosPaz)
                 .build();
+        domicilioRepo.save(domVCP);
 
-        // === 4) SUCURSALES === (crear y guardar en su repositorio)
+        // ===============================================================
+        //   CREACIÓN DE SUCURSALES
+        // ===============================================================
+        // Cada sucursal se asocia a un domicilio.
         Sucursal suc1 = Sucursal.builder()
                 .nombre("Sucursal1 - CABA")
-                .horarioApertura(LocalTime.of(9, 0))
-                .horarioCierre(LocalTime.of(18, 0))
+                .horarioApertura(LocalTime.of(9,0))
+                .horarioCierre(LocalTime.of(18,0))
                 .esCasaMatriz(true)
                 .domicilio(domCaba)
                 .build();
+        sucursalRepo.save(suc1);
 
         Sucursal suc2 = Sucursal.builder()
                 .nombre("Sucursal2 - La Plata")
-                .horarioApertura(LocalTime.of(9, 0))
-                .horarioCierre(LocalTime.of(18, 0))
+                .horarioApertura(LocalTime.of(9,0))
+                .horarioCierre(LocalTime.of(18,0))
                 .esCasaMatriz(false)
                 .domicilio(domLaPlata)
                 .build();
+        sucursalRepo.save(suc2);
 
         Sucursal suc3 = Sucursal.builder()
                 .nombre("Sucursal3 - Córdoba Capital")
-                .horarioApertura(LocalTime.of(8, 30))
-                .horarioCierre(LocalTime.of(17, 30))
+                .horarioApertura(LocalTime.of(8,30))
+                .horarioCierre(LocalTime.of(17,30))
                 .esCasaMatriz(true)
                 .domicilio(domCordobaCap)
                 .build();
+        sucursalRepo.save(suc3);
 
         Sucursal suc4 = Sucursal.builder()
                 .nombre("Sucursal4 - Villa Carlos Paz")
-                .horarioApertura(LocalTime.of(8, 30))
-                .horarioCierre(LocalTime.of(17, 30))
+                .horarioApertura(LocalTime.of(8,30))
+                .horarioCierre(LocalTime.of(17,30))
                 .esCasaMatriz(false)
                 .domicilio(domVCP)
                 .build();
-
-        // Guardarlas en su repositorio para obtener IDs automáticos
-        sucursalRepo.save(suc1);
-        sucursalRepo.save(suc2);
-        sucursalRepo.save(suc3);
         sucursalRepo.save(suc4);
 
-        // === 5) EMPRESAS ===
+        // ===============================================================
+        //   CREACIÓN DE EMPRESAS Y RELACIÓN CON SUCURSALES
+        // ===============================================================
         Empresa empresa1 = Empresa.builder()
                 .nombre("Empresa1")
                 .razonSocial("Empresa Uno SRL")
                 .cuil(20300123456L)
-                .sucursales(new HashSet<>(Set.of(suc1, suc2)))
                 .build();
+        empresa1.getSucursales().add(suc1);
+        empresa1.getSucursales().add(suc2);
+        empresaRepo.save(empresa1);
 
         Empresa empresa2 = Empresa.builder()
                 .nombre("Empresa2")
                 .razonSocial("Empresa Dos SA")
                 .cuil(27300987654L)
-                .sucursales(new HashSet<>(Set.of(suc3, suc4)))
                 .build();
+        empresa2.getSucursales().add(suc3);
+        empresa2.getSucursales().add(suc4);
+        empresaRepo.save(empresa2);
 
-        // Relación inversa: asignar empresa a sucursales
+        // Asignamos la empresa a cada sucursal (bidireccional)
         suc1.setEmpresa(empresa1);
         suc2.setEmpresa(empresa1);
         suc3.setEmpresa(empresa2);
         suc4.setEmpresa(empresa2);
 
-        // Guardar empresas en repositorio
-        empresaRepo.save(empresa1);
-        empresaRepo.save(empresa2);
-
-        // === 6) CRUD SOLICITADO ===
+        // ===============================================================
+        //   RESULTADOS DURANTE LA EJECUCIÓN
+        // ===============================================================
 
         // a) Mostrar todas las empresas
         System.out.println("=== Todas las empresas ===");
@@ -169,32 +190,26 @@ public class Main {
 
         // b) Buscar empresa por ID
         System.out.println("\n=== Buscar empresa por ID ===");
-        Optional<Empresa> empresaBuscada = empresaRepo.findById(empresa1.getId());
-        empresaBuscada.ifPresent(System.out::println);
+        System.out.println(empresaRepo.findById(empresa1.getId()).orElse(null));
 
         // c) Buscar empresa por nombre
-        System.out.println("\n=== Buscar empresa por nombre 'Empresa1' ===");
-        List<Empresa> listaPorNombre = empresaRepo.genericFindByField("nombre", "Empresa1");
-        listaPorNombre.forEach(System.out::println);
+        System.out.println("\n=== Buscar por nombre 'Empresa1' ===");
+        System.out.println(empresaRepo.genericFindByField("nombre", "Empresa1"));
 
-        // d) Actualizar CUIL de empresa1
+        // d) Actualizar datos de empresa1 (ejemplo: cambiar su CUIL)
         System.out.println("\n=== Actualizar CUIL de Empresa1 ===");
         empresa1.setCuil(20999888777L);
         empresaRepo.genericUpdate(empresa1.getId(), empresa1);
-        empresaRepo.findById(empresa1.getId()).ifPresent(System.out::println);
+        System.out.println(empresaRepo.findById(empresa1.getId()).orElse(null));
 
         // e) Eliminar empresa2
         System.out.println("\n=== Eliminar Empresa2 ===");
         empresaRepo.genericDelete(empresa2.getId());
+        System.out.println("Empresas luego de eliminar Empresa2:");
         empresaRepo.findAll().forEach(System.out::println);
 
-        // Extra: mostrar sucursales de empresa1 con IDs
+        // f) Mostrar sucursales de empresa1
         System.out.println("\n=== Sucursales de Empresa1 ===");
-        empresaRepo.findById(empresa1.getId())
-                .ifPresent(e -> e.getSucursales().forEach(System.out::println));
-
-        // Extra opcional: mostrar sucursales desde su propio repo
-        System.out.println("\n=== Todas las sucursales en repositorio ===");
-        sucursalRepo.findAll().forEach(System.out::println);
+        empresa1.getSucursales().forEach(System.out::println);
     }
 }
